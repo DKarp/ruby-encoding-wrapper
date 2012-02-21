@@ -63,11 +63,11 @@ module EncodingWrapper
 
       response = request_send(xml)
 
-      if response.css('errors error').length != 0
-        message = response.css('errors error').text
+      if response[:xml].css('errors error').length != 0
+        message = response[:xml].css('errors error').text
       else
-        message = response.css('response message').text
-        media_id = response.css('MediaID').text
+        message = response[:xml].css('response message').text
+        media_id = response[:xml].css('MediaID').text
       end
 
       {
@@ -222,8 +222,8 @@ module EncodingWrapper
       output = {:errors => [], :status => false, :xml => '', :message => ''}
       output[:xml] = Nokogiri::XML(response.body)
 
-      if response.css('errors error').length != 0
-        response.css('errors error').each { |error| output[:errors] << error.text }
+      if output[:xml].css('errors error').length != 0
+        output[:xml].css('errors error').each { |error| output[:errors] << error.text }
       else
         output[:status] = true
       end
