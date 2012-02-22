@@ -52,8 +52,8 @@ module EncodingWrapper
 
       xml = Nokogiri::XML::Builder.new do |q|
         q.query {
-          q.userid  @user_id
-          q.userkey @user_key
+          q.userid  user_id
+          q.userkey user_key
           q.action  action
           q.source  source
           q.notify  notify_url
@@ -81,8 +81,8 @@ module EncodingWrapper
     def request_status(media_id)
       xml = Nokogiri::XML::Builder.new do |q|
         q.query {
-          q.userid    @user_id
-          q.userkey   @user_key
+          q.userid    user_id
+          q.userkey   user_key
           q.action    EncodingWrapper::Actions::GET_STATUS
           q.mediaid   media_id
         }
@@ -92,11 +92,14 @@ module EncodingWrapper
 
       response[:status] = false
       response[:progress] = false
+      response[:link] = false
 
       if response[:errors].length == 0
-        response[:status] = response[:xml].css('status').text
+        response[:status] = response[:xml].css('format status').text
         response[:progress] = response[:xml].css('progress').text.to_i
-
+        if response[:status] == EncodingWrapper::StatusType::FINISHED
+          response[:link] = response[:xml].css('format s3_destination').text
+        end
         # there is a bug where the progress reports
         # as 100% if the status is 'Waiting for encoder'
         if (response[:status] == EncodingWrapper::StatusType::WAITING)
@@ -111,8 +114,8 @@ module EncodingWrapper
     def cancel_media(media_id)
       xml = Nokogiri::XML::Builder.new do |q|
         q.query {
-          q.userid    @user_id
-          q.userkey   @user_key
+          q.userid    user_id
+          q.userkey   user_key
           q.action    EncodingWrapper::Actions::CANCEL_MEDIA
           q.mediaid   media_id
         }
@@ -135,8 +138,8 @@ module EncodingWrapper
 
       xml = Nokogiri::XML::Builder.new do |q|
         q.query {
-          q.userid  @user_id
-          q.userkey @user_key
+          q.userid  user_id
+          q.userkey user_key
           q.action  EncodingWrapper::Actions::ADD_MEDIA
           q.source  source
           q.notify  notify_url
@@ -147,7 +150,7 @@ module EncodingWrapper
       response = request_send(xml)
 
       response[:media_id] = false
-      
+
       if response[:errors].length == 0
         response[:media_id] = response[:xml].css('MediaID').text
       end
@@ -170,8 +173,8 @@ module EncodingWrapper
     def media_list
       xml = Nokogiri::XML::Builder.new do |q|
         q.query {
-          q.userid    @user_id
-          q.userkey   @user_key
+          q.userid    user_id
+          q.userkey   user_key
           q.action    EncodingWrapper::Actions::GET_MEDIA_LIST
         }
       end.to_xml
@@ -202,8 +205,8 @@ module EncodingWrapper
     def build_query(action)
       query = Nokogiri::XML::Builder.new do |q|
         q.query {
-          q.userid  @user_id
-          q.userkey @user_key
+          q.userid  user_id
+          q.userkey user_key
           q.action  action
           yield q if block_given?
         }
